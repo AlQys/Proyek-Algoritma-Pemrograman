@@ -275,17 +275,27 @@ void tampilMenuMaCafe() {
     clearScreen();
 
     cout << "=== MENU KOBESSAH KOPI ===\n\n";
-    cout << "FOOD\n\n";
+    cout << "FOOD\n";
+
+    string kategoriSebelumnya = "";
 
     for (int i = 0; i < daftarMenu.size(); i++) {
 
         if (daftarMenu[i].kodeMa != "") {
 
-            cout << daftarMenu[i].kodeMa << " | ";
-            cout << daftarMenu[i].namaMa << " | Rp.";
-            cout << daftarMenu[i].hargaMa << endl;
-        
-		}
+            if (daftarMenu[i].kodeMa != kategoriSebelumnya) {
+
+                kategoriSebelumnya = daftarMenu[i].kodeMa;
+
+                cout << "\n" << kategoriSebelumnya << "\n\n";
+            }
+
+            cout << "- "
+                 << left << setw(30)
+                 << daftarMenu[i].namaMa
+                 << " | Rp." << daftarMenu[i].hargaMa
+                 << endl;
+        }
     }
 
     cout << "\n";
