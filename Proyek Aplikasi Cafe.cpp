@@ -1,13 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <iomanip>
 
 using namespace std;
-
 class User {
 public:
     string username;
     string password;
+    string role;
 };
 
 class Menu {
@@ -19,6 +20,7 @@ public:
 
 vector<User> daftarUser;
 vector<Menu> daftarMenu;
+string roleLogin;
 
 void clearScreen() {
     system("cls");
@@ -127,27 +129,125 @@ void inisialisasiMenuMinum() {
 
     Menu mi;
 
-    mi.kodeMi = "Minuman1";
-    mi.namaMi = "Es Kopi Susu";
+    mi.kodeMi = "Kopi Robusta";
+
+    mi.namaMi = "Kopi Hitam";
+    mi.hargaMi = 15000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Kopi Susu";
     mi.hargaMi = 18000;
     daftarMenu.push_back(mi);
 
-    mi.kodeMi = "Minuman2";
-    mi.namaMi = "Cappuccino";
+
+    mi.kodeMi = "Ice Coffee";
+
+    mi.namaMi = "Ice Coffee Hitam";
+    mi.hargaMi = 18000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Ice Coffee Kobe";
     mi.hargaMi = 22000;
     daftarMenu.push_back(mi);
 
-    mi.kodeMi = "Minuman3";
-    mi.namaMi = "Americano";
+    mi.namaMi = "Ice Coffee Aren";
+    mi.hargaMi = 24000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Non Coffee";
+
+    mi.namaMi = "Matcha";
+    mi.hargaMi = 23000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Red Velvet";
+    mi.hargaMi = 22000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Cokelat";
+
+    mi.namaMi = "Cokelat Original";
     mi.hargaMi = 20000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Cokelat Almond";
+    mi.hargaMi = 22000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Blend";
+
+    mi.namaMi = "Cappuccino";
+    mi.hargaMi = 25000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Oreo";
+    mi.hargaMi = 24000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Milk Series";
+
+    mi.namaMi = "Milk Tea";
+    mi.hargaMi = 18000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Milk Strawberry";
+    mi.hargaMi = 19000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Squash";
+
+    mi.namaMi = "Lemon Squash";
+    mi.hargaMi = 17000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Lychee Squash";
+    mi.hargaMi = 17000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Juice";
+
+    mi.namaMi = "Alpukat";
+    mi.hargaMi = 20000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Jambu";
+    mi.hargaMi = 19000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Tea Series";
+
+    mi.namaMi = "Original Tea";
+    mi.hargaMi = 18000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Lemon Tea";
+    mi.hargaMi = 19000;
+    daftarMenu.push_back(mi);
+
+
+    mi.kodeMi = "Wedangan";
+
+    mi.namaMi = "Teh Jahe";
+    mi.hargaMi = 15000;
+    daftarMenu.push_back(mi);
+
+    mi.namaMi = "Wedang Uwuh";
+    mi.hargaMi = 17000;
     daftarMenu.push_back(mi);
 }
 
-void simpanUser(string username, string password) {
+void simpanUser(string username, string password, string role) {
 
     ofstream file("user.txt", ios::app);
 
-    file << username << " " << password << endl;
+    file << username << " " << password << " " << role << endl;
 
     file.close();
 }
@@ -158,7 +258,7 @@ void loadUser() {
 
     User u;
 
-    while (file >> u.username >> u.password) {
+    while (file >> u.username >> u.password >> u.role) {
 
         daftarUser.push_back(u);
     }
@@ -173,11 +273,54 @@ bool cekLogin(string username, string password) {
         if (daftarUser[i].username == username &&
             daftarUser[i].password == password) {
 
+            roleLogin = daftarUser[i].role;
+
             return true;
         }
     }
 
     return false;
+}
+
+void tambahPegawai() {
+
+    User user;
+
+    int pilihan;
+
+    clearScreen();
+
+    cout << "=== TAMBAH PEGAWAI ===\n";
+
+    cout << "Username : ";
+    cin >> user.username;
+
+    cout << "Password : ";
+    cin >> user.password;
+
+    cout << "\n1. Admin\n";
+    cout << "2. Kasir\n";
+    cout << "Pilih Role : ";
+    cin >> pilihan;
+
+    if (pilihan == 1) {
+
+        user.role = "Admin";
+    }
+    else {
+
+        user.role = "Kasir";
+    }
+
+    daftarUser.push_back(user);
+
+    simpanUser(user.username,
+               user.password,
+               user.role);
+
+    cout << "\nPegawai berhasil ditambahkan!\n";
+
+    system("pause");
 }
 
 void registrasi() {
@@ -186,7 +329,7 @@ void registrasi() {
 
     clearScreen();
 
-    cout << "=== REGISTRASI AKUN ===\n";
+    cout << "=== REGISTRASI CUSTOMER ===\n";
 
     cout << "Masukkan Username : ";
     cin >> user.username;
@@ -194,7 +337,11 @@ void registrasi() {
     cout << "Masukkan Password : ";
     cin >> user.password;
 
-    simpanUser(user.username, user.password);
+    user.role = "Customer";
+
+    simpanUser(user.username,
+               user.password,
+               user.role);
 
     daftarUser.push_back(user);
 
@@ -253,15 +400,26 @@ void tampilMenuMiCafe() {
     clearScreen();
 
     cout << "=== MENU KOBESSAH KOPI ===\n\n";
-    cout << "DRINK\n\n";
+    cout << "DRINK\n";
+
+    string kategoriSebelumnya = "";
 
     for (int i = 0; i < daftarMenu.size(); i++) {
 
         if (daftarMenu[i].kodeMi != "") {
 
-            cout << daftarMenu[i].kodeMi << " | ";
-            cout << daftarMenu[i].namaMi << " | Rp.";
-            cout << daftarMenu[i].hargaMi << endl;
+            if (daftarMenu[i].kodeMi != kategoriSebelumnya) {
+
+                kategoriSebelumnya = daftarMenu[i].kodeMi;
+
+                cout << "\n" << kategoriSebelumnya << "\n\n";
+            }
+
+            cout << "- "
+                 << left << setw(30)
+                 << daftarMenu[i].namaMi
+                 << " | Rp." << daftarMenu[i].hargaMi
+                 << endl;
         }
     }
 
@@ -303,21 +461,74 @@ void tampilMenuMaCafe() {
     system("pause");
 }
 
-void tampilMenuUtama() {
+void tampilMenuUser() {
+
+    cout << "===============================\n";
+    cout << "      MENU UTAMA KAFE          \n";
+    cout << "===============================\n";
+    cout << "1. Lihat Menu Minuman\n";
+    cout << "2. Lihat Menu Makanan\n";
+    cout << "3. Input Pesanan\n";
+    cout << "4. Lihat Pesanan\n";
+    cout << "5. Total Pembayaran\n";
+    cout << "6. Logout\n";
+    cout << "0. Keluar\n";
+    cout << "===============================\n";
+    cout << "Pilih Menu : ";
+}
+
+void tampilMenuAwal() {
 
     cout << "===============================\n";
     cout << "      SISTEM INFORMASI KAFE    \n";
     cout << "===============================\n";
     cout << "1. Registrasi Akun\n";
     cout << "2. Login\n";
-    cout << "3. Lihat Daftar Menu Minuman\n";
-    cout << "4. Lihat Daftar Menu Makanan\n";
-    cout << "5. Input Pesanan\n";
-	cout << "6. Lihat Pesanan\n";
-	cout << "7. Total Pembayaran\n";
-	cout << "8. Logout\n";
-	cout << "0. Keluar\n";
+    cout << "0. Keluar\n";
     cout << "===============================\n";
+    cout << "Pilih Menu : ";
+}
+
+void tampilMenuAdmin() {
+
+    cout << "========================\n";
+    cout << "      MENU ADMIN        \n";
+    cout << "========================\n";
+    cout << "1. Lihat Menu\n";
+    cout << "2. Tambah Pegawai\n";
+    cout << "3. Kelola Menu\n";
+    cout << "4. Lihat Transaksi\n";
+    cout << "5. Logout\n";
+    cout << "0. Keluar\n";
+    cout << "========================\n";
+    cout << "Pilih Menu : ";
+}
+
+void tampilMenuKasir() {
+
+    cout << "========================\n";
+    cout << "      MENU KASIR        \n";
+    cout << "========================\n";
+    cout << "1. Lihat Menu\n";
+    cout << "2. Input Pesanan\n";
+    cout << "3. Pembayaran\n";
+    cout << "4. Logout\n";
+    cout << "0. Keluar\n";
+    cout << "========================\n";
+    cout << "Pilih Menu : ";
+}
+
+void tampilMenuCustomer() {
+
+    cout << "========================\n";
+    cout << "     MENU CUSTOMER      \n";
+    cout << "========================\n";
+    cout << "1. Lihat Menu\n";
+    cout << "2. Pesan Menu\n";
+    cout << "3. Lihat Pesanan\n";
+    cout << "4. Logout\n";
+    cout << "0. Keluar\n";
+    cout << "========================\n";
     cout << "Pilih Menu : ";
 }
 
@@ -435,115 +646,90 @@ int main() {
     inisialisasiMenuMakan();
     inisialisasiMenuMinum();
 
+    User admin;
+    admin.username = "admin";
+    admin.password = "123";
+    admin.role = "Admin";
+    daftarUser.push_back(admin);
+
     loadUser();
 
     do {
 
         clearScreen();
 
-        tampilMenuUtama();
+    if (sudahLogin == false) {
+
+    tampilMenuAwal();
+    }
+    else {
+
+    if (roleLogin == "Admin") {
+
+        tampilMenuAdmin();
+    }
+    else if (roleLogin == "Kasir") {
+
+        tampilMenuKasir();
+    }
+    else if (roleLogin == "Customer") {
+
+        tampilMenuCustomer();
+    }
+}
 
         cin >> pilihan;
+
+        
+        if (sudahLogin == false) {
+
+            switch (pilihan) {
+
+            case 1:
+                registrasi();
+                break;
+
+            case 2:
+                sudahLogin = login();
+                break;
+
+            case 0:
+
+                clearScreen();
+
+                cout << "Terima kasih telah menggunakan sistem!\n";
+
+                break;
+
+            default:
+
+                cout << "\nPilihan tidak tersedia!\n";
+
+                system("pause");
+            }
+        }
+
+        
+        else {
+
+    
+    if (roleLogin == "Admin") {
 
         switch (pilihan) {
 
         case 1:
-            registrasi();
+            tampilMenuMaCafe();
             break;
 
         case 2:
-            sudahLogin = login();
+            tambahPegawai();
             break;
 
-        case 3:
-
-            if (sudahLogin == true) {
-
-                tampilMenuMiCafe();
-            }
-            else {
-
-                cout << "\nSilakan login terlebih dahulu!\n";
-
-                system("pause");
-            }
-
-            break;
-
-        case 4:
-
-            if (sudahLogin == true) {
-
-                tampilMenuMaCafe();
-            }
-            else {
-
-                cout << "\nSilakan login terlebih dahulu!\n";
-
-                system("pause");
-            }
-
-            break;
-        
         case 5:
-		
-		    if (sudahLogin == true) {
-		
-		        inputPesanan();
-		    }
-		    else {
-		
-		        cout << "\nSilakan login terlebih dahulu!\n";
-		
-		        system("pause");
-		    }
-		
-		    break;
-		
-		case 6:
-		
-		    if (sudahLogin == true) {
-		
-		        tampilPesanan();
-		    }
-		    else {
-		
-		        cout << "\nSilakan login terlebih dahulu!\n";
-		
-		        system("pause");
-		    }
-		
-		    break;
-		
-		case 7:
 
-		    if (sudahLogin == true) {
-		
-		        tampilTotalPembayaran();
-		    }
-		    else {
-		
-		        cout << "\nSilakan login terlebih dahulu!\n";
-		
-		        system("pause");
-		    }
-		
-		    break;
+            logout();
 
-        case 8:
-
-            if (sudahLogin == true) {
-
-                logout();
-
-                sudahLogin = false;
-            }
-            else {
-
-                cout << "\nAnda belum login!\n";
-
-                system("pause");
-            }
+            sudahLogin = false;
 
             break;
 
@@ -561,6 +747,90 @@ int main() {
 
             system("pause");
         }
+    }
+
+   
+    else if (roleLogin == "Kasir") {
+
+        switch (pilihan) {
+
+        case 1:
+            tampilMenuMaCafe();
+            break;
+
+        case 2:
+            inputPesanan();
+            break;
+
+        case 3:
+            tampilTotalPembayaran();
+            break;
+
+        case 4:
+
+            logout();
+
+            sudahLogin = false;
+
+            break;
+
+        case 0:
+
+            clearScreen();
+
+            cout << "Terima kasih telah menggunakan sistem!\n";
+
+            break;
+
+        default:
+
+            cout << "\nPilihan tidak tersedia!\n";
+
+            system("pause");
+        }
+    }
+
+    
+    else if (roleLogin == "Customer") {
+
+        switch (pilihan) {
+
+        case 1:
+            tampilMenuMaCafe();
+            break;
+
+        case 2:
+            inputPesanan();
+            break;
+
+        case 3:
+            tampilPesanan();
+            break;
+
+        case 4:
+
+            logout();
+
+            sudahLogin = false;
+
+            break;
+
+        case 0:
+
+            clearScreen();
+
+            cout << "Terima kasih telah menggunakan sistem!\n";
+
+            break;
+
+        default:
+
+            cout << "\nPilihan tidak tersedia!\n";
+
+            system("pause");
+        }
+    }
+}
 
     } while (pilihan != 0);
 
