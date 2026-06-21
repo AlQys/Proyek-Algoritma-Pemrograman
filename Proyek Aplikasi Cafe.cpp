@@ -30,12 +30,16 @@ using namespace std;
    KONSTANTA GLOBAL
    ============================================================ */
 
-const string FILE_USER        = "user.txt";
-const string FILE_MENU        = "menu.txt";
-const string FILE_TRANSAKSI   = "transaksi.txt";
-const string FILE_PESANAN     = "pesanan.txt";
-const string NAMA_KAFE        = "KOBESSAH KOPI";
-const int    LEBAR_LAYAR      = 50;
+const string FILE_USER          = "user.txt";
+const string FILE_MENU          = "menu.txt";
+const string FILE_TRANSAKSI     = "transaksi.txt";
+const string FILE_PESANAN       = "pesanan.txt";
+const string FILE_SUPPLIER      = "supplier.txt";
+const string FILE_STOK          = "stok_log.txt";
+const string FILE_PEMBELIAN     = "pembelian.txt";
+const string FILE_PROMO         = "promo.txt";
+const string NAMA_KAFE          = "KOBESSAH KOPI";
+const int    LEBAR_LAYAR        = 50;
 
 /* ============================================================
    STRUCT / CLASS DATA
@@ -130,15 +134,101 @@ public:
     }
 };
 
+// Data supplier/pemasok bahan baku atau menu untuk kafe
+class Supplier {
+public:
+    int    idSupplier;
+    string namaSupplier;
+    string alamat;
+    bool   aktif;
+
+    Supplier() {
+        idSupplier = 0;
+        aktif = true;
+    }
+};
+
+// Catatan pergerakan stok (masuk/keluar) untuk satu barang/menu,
+// terpisah dari field stok di MenuItem supaya ada histori lengkap
+class CatatanStok {
+public:
+    int    idCatatan;
+    string tanggal;
+    string waktu;
+    string kodeBarang;     // bisa merujuk ke id MenuItem, atau nama bahan baku
+    string namaBarang;
+    int    stokMasuk;
+    int    stokKeluar;
+    string keterangan;     // contoh: "Pembelian dari supplier", "Penjualan", "Koreksi stok"
+
+    CatatanStok() {
+        idCatatan  = 0;
+        stokMasuk  = 0;
+        stokKeluar = 0;
+    }
+};
+
+// Satu baris barang yang dibeli dalam satu transaksi pembelian dari supplier
+class ItemPembelian {
+public:
+    string namaBarang;
+    int    hargaSatuan;
+    int    jumlah;
+    int    subtotal;
+
+    ItemPembelian() {
+        hargaSatuan = 0;
+        jumlah = 0;
+        subtotal = 0;
+    }
+};
+
+// Transaksi pembelian stok/bahan dari supplier
+class TransaksiPembelian {
+public:
+    int    idPembelian;
+    string tanggal;
+    string waktu;
+    int    idSupplier;
+    string namaSupplier;
+    vector<ItemPembelian> daftarBarang;
+    int    totalBeli;
+    string adminUsername;   // admin/pegawai yang mencatat pembelian
+
+    TransaksiPembelian() {
+        idPembelian = 0;
+        idSupplier  = 0;
+        totalBeli   = 0;
+    }
+};
+
+// Data diskon/promo yang bisa diterapkan kasir saat pembayaran
+class Promo {
+public:
+    string kodePromo;
+    string namaPromo;
+    int    besarDiskonPersen;   // diskon dalam persen, contoh: 10 = potong 10%
+    bool   aktif;
+
+    Promo() {
+        besarDiskonPersen = 0;
+        aktif = true;
+    }
+};
+
 /* ============================================================
    VARIABEL GLOBAL
    ============================================================ */
 
-vector<User>          daftarUser;
-vector<MenuItem>       daftarMenu;
-vector<Transaksi>      daftarTransaksi;
-vector<Pesanan>        daftarPesanan;
-vector<ItemTransaksi>  keranjang;       // keranjang sementara saat input pesanan
+vector<User>               daftarUser;
+vector<MenuItem>           daftarMenu;
+vector<Transaksi>          daftarTransaksi;
+vector<Pesanan>            daftarPesanan;
+vector<ItemTransaksi>      keranjang;       // keranjang sementara saat input pesanan
+vector<Supplier>           daftarSupplier;
+vector<CatatanStok>        daftarCatatanStok;
+vector<TransaksiPembelian> daftarPembelian;
+vector<Promo>              daftarPromo;
 
 string roleLogin    = "";
 string userLogin    = "";
@@ -147,6 +237,9 @@ string namaLogin    = "";
 int counterIdMenu       = 1;
 int counterIdTransaksi  = 1;
 int counterIdPesanan    = 1;
+int counterIdSupplier   = 1;
+int counterIdCatatanStok = 1;
+int counterIdPembelian  = 1;
 
 /* ============================================================
    FUNGSI UTILITAS UMUM
@@ -1147,6 +1240,763 @@ void menuKelolaMenu() {
             case 6:
                 cariMenu();
                 break;
+        }
+
+    } while (pilihan != 0);
+}
+
+/* ============================================================
+   PENYIMPANAN & PEMUATAN DATA SUPPLIER (FILE)
+   ============================================================ */
+
+void simpanSemuaSupplier() {
+
+    ofstream file(FILE_SUPPLIER.c_str());
+
+    for (size_t i = 0; i < daftarSupplier.size(); i++) {
+
+        file << daftarSupplier[i].idSupplier << "|"
+             << daftarSupplier[i].namaSupplier << "|"
+             << daftarSupplier[i].alamat << "|"
+             << (daftarSupplier[i].aktif ? 1 : 0)
+             << "\n";
+    }
+
+    file.close();
+}
+
+void loadSupplierDariFile() {
+
+    ifstream file(FILE_SUPPLIER.c_str());
+
+    if (!file.is_open()) return;
+
+    string baris;
+
+    while (getline(file, baris)) {
+
+        if (baris.empty()) continue;
+
+        stringstream ss(baris);
+        string token;
+        vector<string> kolom;
+
+        while (getline(ss, token, '|')) {
+            kolom.push_back(token);
+        }
+
+        if (kolom.size() < 4) continue;
+
+        Supplier s;
+        s.idSupplier   = stoi(kolom[0]);
+        s.namaSupplier = kolom[1];
+        s.alamat       = kolom[2];
+        s.aktif        = (kolom[3] == "1");
+
+        daftarSupplier.push_back(s);
+
+        if (s.idSupplier >= counterIdSupplier) {
+            counterIdSupplier = s.idSupplier + 1;
+        }
+    }
+
+    file.close();
+}
+
+int cariIndexSupplierById(int id) {
+    for (size_t i = 0; i < daftarSupplier.size(); i++) {
+        if (daftarSupplier[i].idSupplier == id) {
+            return (int)i;
+        }
+    }
+    return -1;
+}
+
+/* ============================================================
+   FITUR: KELOLA SUPPLIER (ADMIN) - CRUD
+   ============================================================ */
+
+void tampilDaftarSupplier() {
+
+    clearScreen();
+
+    garis();
+    cout << "            DAFTAR SUPPLIER\n";
+    garis();
+
+    cout << left << setw(5)  << "ID"
+         << setw(25) << "Nama Supplier"
+         << setw(20) << "Alamat"
+         << setw(10) << "Status" << "\n";
+
+    garis('-');
+
+    if (daftarSupplier.empty()) {
+        cout << "Belum ada data supplier.\n";
+    }
+
+    for (size_t i = 0; i < daftarSupplier.size(); i++) {
+
+        cout << left << setw(5)  << daftarSupplier[i].idSupplier
+             << setw(25) << daftarSupplier[i].namaSupplier
+             << setw(20) << daftarSupplier[i].alamat
+             << setw(10) << (daftarSupplier[i].aktif ? "Aktif" : "Nonaktif")
+             << "\n";
+    }
+
+    cout << "\n";
+    jedaLayar();
+}
+
+void tambahSupplier() {
+
+    clearScreen();
+
+    garis();
+    cout << "            TAMBAH SUPPLIER\n";
+    garis();
+
+    string nama = inputString("Nama Supplier : ");
+
+    if (nama.empty()) {
+        cout << "\nNama supplier tidak boleh kosong!\n";
+        jedaLayar();
+        return;
+    }
+
+    string alamat = inputString("Alamat : ");
+
+    Supplier s;
+    s.idSupplier   = counterIdSupplier++;
+    s.namaSupplier = nama;
+    s.alamat       = alamat.empty() ? "-" : alamat;
+    s.aktif        = true;
+
+    daftarSupplier.push_back(s);
+    simpanSemuaSupplier();
+
+    cout << "\nSupplier '" << nama << "' berhasil ditambahkan dengan ID " << s.idSupplier << "!\n";
+    jedaLayar();
+}
+
+void editSupplier() {
+
+    clearScreen();
+
+    garis();
+    cout << "             EDIT SUPPLIER\n";
+    garis();
+
+    tampilDaftarSupplier();
+
+    clearScreen();
+
+    int id = inputInt("Masukkan ID supplier yang ingin diedit (0 untuk batal) : ");
+
+    if (id == 0) return;
+
+    int idx = cariIndexSupplierById(id);
+
+    if (idx == -1) {
+        cout << "\nID supplier tidak ditemukan!\n";
+        jedaLayar();
+        return;
+    }
+
+    cout << "\nSupplier saat ini: " << daftarSupplier[idx].namaSupplier
+         << " - " << daftarSupplier[idx].alamat << "\n\n";
+
+    string namaBaru = inputString("Nama Baru (kosongkan jika tidak diubah) : ");
+
+    if (!namaBaru.empty()) {
+        daftarSupplier[idx].namaSupplier = namaBaru;
+    }
+
+    string alamatBaru = inputString("Alamat Baru (kosongkan jika tidak diubah) : ");
+
+    if (!alamatBaru.empty()) {
+        daftarSupplier[idx].alamat = alamatBaru;
+    }
+
+    simpanSemuaSupplier();
+
+    cout << "\nData supplier berhasil diperbarui!\n";
+    jedaLayar();
+}
+
+void hapusSupplier() {
+
+    clearScreen();
+
+    garis();
+    cout << "             HAPUS SUPPLIER\n";
+    garis();
+
+    tampilDaftarSupplier();
+
+    clearScreen();
+
+    int id = inputInt("Masukkan ID supplier yang ingin dihapus (0 untuk batal) : ");
+
+    if (id == 0) return;
+
+    int idx = cariIndexSupplierById(id);
+
+    if (idx == -1) {
+        cout << "\nID supplier tidak ditemukan!\n";
+        jedaLayar();
+        return;
+    }
+
+    string namaSupplier = daftarSupplier[idx].namaSupplier;
+
+    daftarSupplier.erase(daftarSupplier.begin() + idx);
+    simpanSemuaSupplier();
+
+    cout << "\nSupplier '" << namaSupplier << "' berhasil dihapus!\n";
+    jedaLayar();
+}
+
+void ubahStatusSupplier() {
+
+    clearScreen();
+
+    garis();
+    cout << "        UBAH STATUS SUPPLIER\n";
+    garis();
+
+    tampilDaftarSupplier();
+
+    clearScreen();
+
+    int id = inputInt("Masukkan ID supplier (0 untuk batal) : ");
+
+    if (id == 0) return;
+
+    int idx = cariIndexSupplierById(id);
+
+    if (idx == -1) {
+        cout << "\nID supplier tidak ditemukan!\n";
+        jedaLayar();
+        return;
+    }
+
+    daftarSupplier[idx].aktif = !daftarSupplier[idx].aktif;
+    simpanSemuaSupplier();
+
+    cout << "\nStatus supplier '" << daftarSupplier[idx].namaSupplier << "' sekarang: "
+         << (daftarSupplier[idx].aktif ? "Aktif" : "Nonaktif") << "\n";
+
+    jedaLayar();
+}
+
+void menuKelolaSupplier() {
+
+    int pilihan;
+
+    do {
+        clearScreen();
+
+        garis();
+        cout << "           KELOLA SUPPLIER\n";
+        garis();
+        cout << "1. Lihat Semua Supplier\n";
+        cout << "2. Tambah Supplier\n";
+        cout << "3. Edit Supplier\n";
+        cout << "4. Hapus Supplier\n";
+        cout << "5. Ubah Status Aktif/Nonaktif\n";
+        cout << "0. Kembali\n";
+        garis();
+
+        pilihan = inputIntRange("Pilih Menu : ", 0, 5);
+
+        switch (pilihan) {
+            case 1: tampilDaftarSupplier();  break;
+            case 2: tambahSupplier();        break;
+            case 3: editSupplier();          break;
+            case 4: hapusSupplier();         break;
+            case 5: ubahStatusSupplier();    break;
+        }
+
+    } while (pilihan != 0);
+}
+
+/* ============================================================
+   PENYIMPANAN & PEMUATAN DATA CATATAN STOK (FILE)
+   ============================================================ */
+
+void simpanSatuCatatanStok(CatatanStok c) {
+
+    ofstream file(FILE_STOK.c_str(), ios::app);
+
+    file << c.idCatatan << "|"
+         << c.tanggal << "|"
+         << c.waktu << "|"
+         << c.kodeBarang << "|"
+         << c.namaBarang << "|"
+         << c.stokMasuk << "|"
+         << c.stokKeluar << "|"
+         << c.keterangan
+         << "\n";
+
+    file.close();
+}
+
+void loadCatatanStokDariFile() {
+
+    ifstream file(FILE_STOK.c_str());
+
+    if (!file.is_open()) return;
+
+    string baris;
+
+    while (getline(file, baris)) {
+
+        if (baris.empty()) continue;
+
+        stringstream ss(baris);
+        string token;
+        vector<string> kolom;
+
+        while (getline(ss, token, '|')) {
+            kolom.push_back(token);
+        }
+
+        if (kolom.size() < 8) continue;
+
+        CatatanStok c;
+        c.idCatatan  = stoi(kolom[0]);
+        c.tanggal    = kolom[1];
+        c.waktu      = kolom[2];
+        c.kodeBarang = kolom[3];
+        c.namaBarang = kolom[4];
+        c.stokMasuk  = stoi(kolom[5]);
+        c.stokKeluar = stoi(kolom[6]);
+        c.keterangan = kolom[7];
+
+        daftarCatatanStok.push_back(c);
+
+        if (c.idCatatan >= counterIdCatatanStok) {
+            counterIdCatatanStok = c.idCatatan + 1;
+        }
+    }
+
+    file.close();
+}
+
+void catatPergerakanStok(string kodeBarang, string namaBarang, int masuk, int keluar, string keterangan) {
+
+    CatatanStok c;
+    c.idCatatan  = counterIdCatatanStok++;
+    c.tanggal    = getTanggalSekarang();
+    c.waktu      = getWaktuSekarang();
+    c.kodeBarang = kodeBarang;
+    c.namaBarang = namaBarang;
+    c.stokMasuk  = masuk;
+    c.stokKeluar = keluar;
+    c.keterangan = keterangan;
+
+    daftarCatatanStok.push_back(c);
+    simpanSatuCatatanStok(c);
+}
+
+/* ============================================================
+   FITUR: LIHAT RIWAYAT STOK (ADMIN)
+   ============================================================ */
+
+void lihatRiwayatStok() {
+
+    clearScreen();
+
+    garis();
+    cout << "           RIWAYAT PERGERAKAN STOK\n";
+    garis();
+
+    if (daftarCatatanStok.empty()) {
+        cout << "Belum ada catatan pergerakan stok.\n\n";
+        jedaLayar();
+        return;
+    }
+
+    cout << left << setw(12) << "Tanggal"
+         << setw(22) << "Barang"
+         << setw(8)  << "Masuk"
+         << setw(8)  << "Keluar"
+         << "Keterangan" << "\n";
+
+    garis('-');
+
+    for (size_t i = 0; i < daftarCatatanStok.size(); i++) {
+
+        cout << left << setw(12) << daftarCatatanStok[i].tanggal
+             << setw(22) << daftarCatatanStok[i].namaBarang
+             << setw(8)  << daftarCatatanStok[i].stokMasuk
+             << setw(8)  << daftarCatatanStok[i].stokKeluar
+             << daftarCatatanStok[i].keterangan
+             << "\n";
+    }
+
+    cout << "\n";
+    jedaLayar();
+}
+
+void lihatStokMenuSaatIni() {
+
+    clearScreen();
+
+    garis();
+    cout << "            STOK MENU SAAT INI\n";
+    garis();
+
+    cout << left << setw(5)  << "ID"
+         << setw(30) << "Nama Menu"
+         << setw(10) << "Stok"
+         << "Status" << "\n";
+
+    garis('-');
+
+    for (size_t i = 0; i < daftarMenu.size(); i++) {
+
+        string statusStok = "Aman";
+
+        if (daftarMenu[i].stok <= 0) {
+            statusStok = "HABIS";
+        } else if (daftarMenu[i].stok <= 10) {
+            statusStok = "Menipis";
+        }
+
+        cout << left << setw(5)  << daftarMenu[i].id
+             << setw(30) << daftarMenu[i].nama
+             << setw(10) << daftarMenu[i].stok
+             << statusStok
+             << "\n";
+    }
+
+    cout << "\n";
+    jedaLayar();
+}
+
+/* ============================================================
+   PENYIMPANAN & PEMUATAN DATA TRANSAKSI PEMBELIAN (FILE)
+   ============================================================ */
+
+void simpanPembelianKeFile(TransaksiPembelian tb) {
+
+    ofstream file(FILE_PEMBELIAN.c_str(), ios::app);
+
+    // Format: ID|TANGGAL|WAKTU|ID_SUPPLIER|NAMA_SUPPLIER|TOTAL|ADMIN|JML_ITEM|nama:harga:jumlah;...
+    file << tb.idPembelian << "|"
+         << tb.tanggal << "|"
+         << tb.waktu << "|"
+         << tb.idSupplier << "|"
+         << tb.namaSupplier << "|"
+         << tb.totalBeli << "|"
+         << tb.adminUsername << "|"
+         << tb.daftarBarang.size() << "|";
+
+    for (size_t i = 0; i < tb.daftarBarang.size(); i++) {
+        file << tb.daftarBarang[i].namaBarang << ":"
+             << tb.daftarBarang[i].hargaSatuan << ":"
+             << tb.daftarBarang[i].jumlah;
+
+        if (i != tb.daftarBarang.size() - 1) {
+            file << ";";
+        }
+    }
+
+    file << "\n";
+    file.close();
+}
+
+void loadPembelianDariFile() {
+
+    ifstream file(FILE_PEMBELIAN.c_str());
+
+    if (!file.is_open()) return;
+
+    string baris;
+
+    while (getline(file, baris)) {
+
+        if (baris.empty()) continue;
+
+        stringstream ss(baris);
+        string token;
+        vector<string> kolom;
+
+        while (getline(ss, token, '|')) {
+            kolom.push_back(token);
+        }
+
+        if (kolom.size() < 8) continue;
+
+        TransaksiPembelian tb;
+        tb.idPembelian   = stoi(kolom[0]);
+        tb.tanggal       = kolom[1];
+        tb.waktu         = kolom[2];
+        tb.idSupplier    = stoi(kolom[3]);
+        tb.namaSupplier  = kolom[4];
+        tb.totalBeli     = stoi(kolom[5]);
+        tb.adminUsername = kolom[6];
+
+        int jumlahItem = stoi(kolom[7]);
+
+        if (kolom.size() > 8 && jumlahItem > 0) {
+
+            stringstream itemStream(kolom[8]);
+            string itemToken;
+
+            while (getline(itemStream, itemToken, ';')) {
+
+                stringstream itemSS(itemToken);
+                string namaI, hargaI, jumlahI;
+
+                getline(itemSS, namaI, ':');
+                getline(itemSS, hargaI, ':');
+                getline(itemSS, jumlahI, ':');
+
+                if (namaI.empty()) continue;
+
+                ItemPembelian ib;
+                ib.namaBarang   = namaI;
+                ib.hargaSatuan  = stoi(hargaI);
+                ib.jumlah       = stoi(jumlahI);
+                ib.subtotal     = ib.hargaSatuan * ib.jumlah;
+
+                tb.daftarBarang.push_back(ib);
+            }
+        }
+
+        daftarPembelian.push_back(tb);
+
+        if (tb.idPembelian >= counterIdPembelian) {
+            counterIdPembelian = tb.idPembelian + 1;
+        }
+    }
+
+    file.close();
+}
+
+/* ============================================================
+   FITUR: TRANSAKSI PEMBELIAN STOK DARI SUPPLIER (ADMIN)
+   ============================================================ */
+
+void buatTransaksiPembelian() {
+
+    clearScreen();
+
+    garis();
+    cout << "        PEMBELIAN STOK DARI SUPPLIER\n";
+    garis();
+
+    if (daftarSupplier.empty()) {
+        cout << "Belum ada data supplier. Tambahkan supplier terlebih dahulu!\n\n";
+        jedaLayar();
+        return;
+    }
+
+    cout << left << setw(5) << "ID" << "Nama Supplier\n";
+    garis('-');
+
+    for (size_t i = 0; i < daftarSupplier.size(); i++) {
+        if (!daftarSupplier[i].aktif) continue;
+        cout << left << setw(5) << daftarSupplier[i].idSupplier
+             << daftarSupplier[i].namaSupplier << "\n";
+    }
+
+    int idSupplier = inputInt("\nPilih ID Supplier (0 untuk batal) : ");
+
+    if (idSupplier == 0) return;
+
+    int idxSupplier = cariIndexSupplierById(idSupplier);
+
+    if (idxSupplier == -1) {
+        cout << "\nSupplier tidak ditemukan!\n";
+        jedaLayar();
+        return;
+    }
+
+    vector<ItemPembelian> daftarBeli;
+    int pilihanLanjut;
+
+    do {
+        clearScreen();
+
+        garis();
+        cout << "   PEMBELIAN DARI: " << daftarSupplier[idxSupplier].namaSupplier << "\n";
+        garis();
+
+        if (!daftarBeli.empty()) {
+            cout << "\nBarang yang sudah diinput:\n";
+            for (size_t i = 0; i < daftarBeli.size(); i++) {
+                cout << "  - " << daftarBeli[i].namaBarang
+                     << " x" << daftarBeli[i].jumlah
+                     << " = " << formatRupiah(daftarBeli[i].subtotal) << "\n";
+            }
+        }
+
+        string namaBarang = inputString("\nNama Barang/Bahan (kosongkan untuk selesai) : ");
+
+        if (namaBarang.empty()) break;
+
+        int hargaSatuan = inputInt("Harga Satuan : ");
+        int jumlah      = inputInt("Jumlah : ");
+
+        if (hargaSatuan <= 0 || jumlah <= 0) {
+            cout << "\nHarga dan jumlah harus lebih dari 0!\n";
+            jedaLayar();
+            continue;
+        }
+
+        ItemPembelian ib;
+        ib.namaBarang  = namaBarang;
+        ib.hargaSatuan = hargaSatuan;
+        ib.jumlah      = jumlah;
+        ib.subtotal    = hargaSatuan * jumlah;
+
+        daftarBeli.push_back(ib);
+
+        pilihanLanjut = inputIntRange("Tambah barang lain? (1=Ya, 0=Selesai) : ", 0, 1);
+
+        if (pilihanLanjut == 0) break;
+
+    } while (true);
+
+    if (daftarBeli.empty()) {
+        cout << "\nTidak ada barang yang dibeli.\n";
+        jedaLayar();
+        return;
+    }
+
+    int totalBeli = 0;
+    for (size_t i = 0; i < daftarBeli.size(); i++) {
+        totalBeli += daftarBeli[i].subtotal;
+    }
+
+    TransaksiPembelian tb;
+    tb.idPembelian   = counterIdPembelian++;
+    tb.tanggal       = getTanggalSekarang();
+    tb.waktu         = getWaktuSekarang();
+    tb.idSupplier    = daftarSupplier[idxSupplier].idSupplier;
+    tb.namaSupplier  = daftarSupplier[idxSupplier].namaSupplier;
+    tb.daftarBarang  = daftarBeli;
+    tb.totalBeli     = totalBeli;
+    tb.adminUsername = userLogin;
+
+    daftarPembelian.push_back(tb);
+    simpanPembelianKeFile(tb);
+
+    // Setiap barang yang dibeli dicatat sebagai stok masuk di riwayat stok.
+    // Jika nama barang cocok dengan nama menu yang ada, stok menu itu juga ditambahkan otomatis.
+    for (size_t i = 0; i < daftarBeli.size(); i++) {
+
+        bool cocokMenu = false;
+
+        for (size_t j = 0; j < daftarMenu.size(); j++) {
+            if (toLowerStr(daftarMenu[j].nama) == toLowerStr(daftarBeli[i].namaBarang)) {
+                daftarMenu[j].stok += daftarBeli[i].jumlah;
+                cocokMenu = true;
+            }
+        }
+
+        catatPergerakanStok(
+            cocokMenu ? "MENU" : "BAHAN",
+            daftarBeli[i].namaBarang,
+            daftarBeli[i].jumlah,
+            0,
+            "Pembelian dari supplier " + daftarSupplier[idxSupplier].namaSupplier
+        );
+    }
+
+    simpanSemuaMenu();
+
+    clearScreen();
+    garis();
+    cout << "        PEMBELIAN BERHASIL DICATAT\n";
+    garis();
+    cout << "ID Pembelian  : " << tb.idPembelian << "\n";
+    cout << "Supplier      : " << tb.namaSupplier << "\n";
+    cout << "Tanggal       : " << tb.tanggal << " " << tb.waktu << "\n\n";
+
+    for (size_t i = 0; i < daftarBeli.size(); i++) {
+        cout << "  - " << daftarBeli[i].namaBarang
+             << " x" << daftarBeli[i].jumlah
+             << " = " << formatRupiah(daftarBeli[i].subtotal) << "\n";
+    }
+
+    garis('-');
+    cout << "TOTAL PEMBELIAN : " << formatRupiah(totalBeli) << "\n\n";
+
+    jedaLayar();
+}
+
+void lihatRiwayatPembelian() {
+
+    clearScreen();
+
+    garis();
+    cout << "          RIWAYAT PEMBELIAN STOK\n";
+    garis();
+
+    if (daftarPembelian.empty()) {
+        cout << "Belum ada riwayat pembelian.\n\n";
+        jedaLayar();
+        return;
+    }
+
+    int grandTotal = 0;
+
+    for (size_t i = 0; i < daftarPembelian.size(); i++) {
+
+        cout << "\nPembelian #" << daftarPembelian[i].idPembelian
+             << " | " << daftarPembelian[i].tanggal
+             << " " << daftarPembelian[i].waktu << "\n";
+
+        cout << "Supplier : " << daftarPembelian[i].namaSupplier
+             << " | Dicatat oleh: " << daftarPembelian[i].adminUsername << "\n";
+
+        for (size_t j = 0; j < daftarPembelian[i].daftarBarang.size(); j++) {
+            cout << "  - " << daftarPembelian[i].daftarBarang[j].namaBarang
+                 << " x" << daftarPembelian[i].daftarBarang[j].jumlah
+                 << " = " << formatRupiah(daftarPembelian[i].daftarBarang[j].subtotal)
+                 << "\n";
+        }
+
+        cout << "  Total: " << formatRupiah(daftarPembelian[i].totalBeli) << "\n";
+        garis('-');
+
+        grandTotal += daftarPembelian[i].totalBeli;
+    }
+
+    cout << "\nGRAND TOTAL SELURUH PEMBELIAN : " << formatRupiah(grandTotal) << "\n\n";
+
+    jedaLayar();
+}
+
+void menuKelolaStokPembelian() {
+
+    int pilihan;
+
+    do {
+        clearScreen();
+
+        garis();
+        cout << "        STOK & PEMBELIAN BARANG\n";
+        garis();
+        cout << "1. Lihat Stok Menu Saat Ini\n";
+        cout << "2. Riwayat Pergerakan Stok\n";
+        cout << "3. Catat Pembelian dari Supplier\n";
+        cout << "4. Riwayat Pembelian\n";
+        cout << "0. Kembali\n";
+        garis();
+
+        pilihan = inputIntRange("Pilih Menu : ", 0, 4);
+
+        switch (pilihan) {
+            case 1: lihatStokMenuSaatIni();     break;
+            case 2: lihatRiwayatStok();         break;
+            case 3: buatTransaksiPembelian();   break;
+            case 4: lihatRiwayatPembelian();    break;
         }
 
     } while (pilihan != 0);
