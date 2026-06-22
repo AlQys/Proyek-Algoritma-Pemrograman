@@ -49,7 +49,7 @@ class User {
 public:
     string username;
     string password;
-    string role;       // "Admin", "Kasir", "Customer"
+    string role;       
     string namaLengkap;
     bool   aktif;
 
@@ -59,12 +59,12 @@ public:
     }
 };
 
-// Tipe menu: "Makanan" atau "Minuman"
+
 class MenuItem {
 public:
     int    id;
     string tipe;        // "Makanan" / "Minuman"
-    string kategori;    // contoh: "Nasgor", "Mie", "Kopi Robusta", dll
+    string kategori;
     string nama;
     int    harga;
     int    stok;
@@ -148,8 +148,8 @@ public:
     }
 };
 
+
 // Catatan pergerakan stok (masuk/keluar) untuk satu barang/menu,
-// terpisah dari field stok di MenuItem supaya ada histori lengkap
 class CatatanStok {
 public:
     int    idCatatan;
@@ -306,7 +306,6 @@ int inputInt(string label) {
         cin >> nilai;
 
         if (cin.eof()) {
-            // Input stream berakhir (mis. Ctrl+D/Ctrl+Z) -> hentikan program dengan aman
             cout << "\nInput berakhir. Program ditutup.\n";
             exit(0);
         }
@@ -505,9 +504,7 @@ bool loadMenuDariFile() {
 }
 
 void siapkanDataMenu() {
-
-    // Jika file menu.txt sudah ada isinya, pakai itu.
-    // Jika belum ada (pertama kali jalan), buat data awal lalu simpan ke file.
+   
     bool berhasilLoad = loadMenuDariFile();
 
     if (!berhasilLoad) {
@@ -962,9 +959,6 @@ void tampilMenuMinuman() {
 }
 
 void tampilSemuaMenuRingkas() {
-
-    // Versi ringkas dipakai saat proses pemesanan, supaya user bisa
-    // langsung lihat ID lalu input ID itu untuk memesan.
 
     string kategoriSebelumnya = "";
 
@@ -2275,7 +2269,6 @@ void buatPesananBaru() {
         return;
     }
 
-    // Konfirmasi sebelum disimpan jadi pesanan Pending
     clearScreen();
 
     garis();
