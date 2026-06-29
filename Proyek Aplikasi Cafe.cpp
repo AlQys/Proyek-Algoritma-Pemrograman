@@ -16,12 +16,10 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <iomanip>
 #include <string>
 #include <sstream>
 #include <ctime>
-#include <algorithm>
 #include <limits>
 
 using namespace std;
@@ -40,6 +38,115 @@ const string FILE_PEMBELIAN     = "pembelian.txt";
 const string FILE_PROMO         = "promo.txt";
 const string NAMA_KAFE          = "KOBESSAH KOPI";
 const int    LEBAR_LAYAR        = 50;
+
+/* ============================================================
+   LIST DINAMIS MANUAL
+   ============================================================ */
+
+template <class T>
+class ManualList {
+private:
+    T* data;
+    int banyakData;
+    int kapasitas;
+
+    void perbesarKapasitas() {
+        int kapasitasBaru = (kapasitas == 0) ? 4 : kapasitas * 2;
+        T* dataBaru = new T[kapasitasBaru];
+
+        for (int i = 0; i < banyakData; i++) {
+            dataBaru[i] = data[i];
+        }
+
+        delete[] data;
+        data = dataBaru;
+        kapasitas = kapasitasBaru;
+    }
+
+public:
+    ManualList() {
+        data = NULL;
+        banyakData = 0;
+        kapasitas = 0;
+    }
+
+    ManualList(const ManualList<T>& lain) {
+        banyakData = lain.banyakData;
+        kapasitas = lain.kapasitas;
+        data = NULL;
+
+        if (kapasitas > 0) {
+            data = new T[kapasitas];
+            for (int i = 0; i < banyakData; i++) {
+                data[i] = lain.data[i];
+            }
+        }
+    }
+
+    ~ManualList() {
+        delete[] data;
+    }
+
+    ManualList<T>& operator=(const ManualList<T>& lain) {
+        if (this != &lain) {
+            delete[] data;
+
+            banyakData = lain.banyakData;
+            kapasitas = lain.kapasitas;
+            data = NULL;
+
+            if (kapasitas > 0) {
+                data = new T[kapasitas];
+                for (int i = 0; i < banyakData; i++) {
+                    data[i] = lain.data[i];
+                }
+            }
+        }
+
+        return *this;
+    }
+
+    void push_back(const T& nilai) {
+        if (banyakData >= kapasitas) {
+            perbesarKapasitas();
+        }
+
+        data[banyakData] = nilai;
+        banyakData++;
+    }
+
+    void clear() {
+        banyakData = 0;
+    }
+
+    bool empty() const {
+        return banyakData == 0;
+    }
+
+    size_t size() const {
+        return banyakData;
+    }
+
+    void eraseAt(int index) {
+        if (index < 0 || index >= banyakData) {
+            return;
+        }
+
+        for (int i = index; i < banyakData - 1; i++) {
+            data[i] = data[i + 1];
+        }
+
+        banyakData--;
+    }
+
+    T& operator[](int index) {
+        return data[index];
+    }
+
+    const T& operator[](int index) const {
+        return data[index];
+    }
+};
 
 /* ============================================================
    STRUCT / CLASS DATA
@@ -95,15 +202,135 @@ public:
     }
 };
 
+struct Tanggal {
+    int hari;
+    int bulan;
+    int tahun;
+
+    Tanggal() {
+        hari = 0;
+        bulan = 0;
+        tahun = 0;
+    }
+
+    Tanggal(int h, int b, int t) {
+        hari = h;
+        bulan = b;
+        tahun = t;
+    }
+
+    Tanggal(string teks) {
+        isiDariString(teks);
+    }
+
+    void isiDariString(string teks) {
+        hari = 0;
+        bulan = 0;
+        tahun = 0;
+
+        if (teks.size() >= 10) {
+            hari  = atoi(teks.substr(0, 2).c_str());
+            bulan = atoi(teks.substr(3, 2).c_str());
+            tahun = atoi(teks.substr(6, 4).c_str());
+        }
+    }
+
+    string keString() const {
+        ostringstream oss;
+        oss << setfill('0') << setw(2) << hari << "-"
+            << setfill('0') << setw(2) << bulan << "-"
+            << setw(4) << tahun;
+        return oss.str();
+    }
+
+    Tanggal& operator=(string teks) {
+        isiDariString(teks);
+        return *this;
+    }
+
+    operator string() const {
+        return keString();
+    }
+};
+
+struct Waktu {
+    int jam;
+    int menit;
+    int detik;
+
+    Waktu() {
+        jam = 0;
+        menit = 0;
+        detik = 0;
+    }
+
+    Waktu(int j, int m, int d) {
+        jam = j;
+        menit = m;
+        detik = d;
+    }
+
+    Waktu(string teks) {
+        isiDariString(teks);
+    }
+
+    void isiDariString(string teks) {
+        jam = 0;
+        menit = 0;
+        detik = 0;
+
+        if (teks.size() >= 8) {
+            jam   = atoi(teks.substr(0, 2).c_str());
+            menit = atoi(teks.substr(3, 2).c_str());
+            detik = atoi(teks.substr(6, 2).c_str());
+        }
+    }
+
+    string keString() const {
+        ostringstream oss;
+        oss << setfill('0') << setw(2) << jam << ":"
+            << setfill('0') << setw(2) << menit << ":"
+            << setfill('0') << setw(2) << detik;
+        return oss.str();
+    }
+
+    Waktu& operator=(string teks) {
+        isiDariString(teks);
+        return *this;
+    }
+
+    operator string() const {
+        return keString();
+    }
+};
+
+ostream& operator<<(ostream& out, const Tanggal& tanggal) {
+    out << tanggal.keString();
+    return out;
+}
+
+ostream& operator<<(ostream& out, const Waktu& waktu) {
+    out << waktu.keString();
+    return out;
+}
+
+bool operator!=(const Tanggal& tanggal, const string& teks) {
+    return tanggal.keString() != teks;
+}
+
+bool operator==(const Tanggal& tanggal, const string& teks) {
+    return tanggal.keString() == teks;
+}
+
 // Satu transaksi penuh (bisa berisi banyak item)
 class Transaksi {
 public:
     int    idTransaksi;
-    string tanggal;
-    string waktu;
+    Tanggal tanggal;
+    Waktu  waktu;
     string kasirUsername;
     string customerUsername;
-    vector<ItemTransaksi> daftarItem;
+    ManualList<ItemTransaksi> daftarItem;
     int    totalBayar;
     int    uangBayar;
     int    kembalian;
@@ -120,10 +347,10 @@ public:
 class Pesanan {
 public:
     int    idPesanan;
-    string tanggal;
-    string waktu;
+    Tanggal tanggal;
+    Waktu  waktu;
     string customerUsername;
-    vector<ItemTransaksi> daftarItem;
+    ManualList<ItemTransaksi> daftarItem;
     int    totalHarga;
     string status;   // "Pending" / "Selesai" / "Dibatalkan"
 
@@ -153,8 +380,8 @@ public:
 class CatatanStok {
 public:
     int    idCatatan;
-    string tanggal;
-    string waktu;
+    Tanggal tanggal;
+    Waktu  waktu;
     string kodeBarang;     // bisa merujuk ke id MenuItem, atau nama bahan baku
     string namaBarang;
     int    stokMasuk;
@@ -187,11 +414,11 @@ public:
 class TransaksiPembelian {
 public:
     int    idPembelian;
-    string tanggal;
-    string waktu;
+    Tanggal tanggal;
+    Waktu  waktu;
     int    idSupplier;
     string namaSupplier;
-    vector<ItemPembelian> daftarBarang;
+    ManualList<ItemPembelian> daftarBarang;
     int    totalBeli;
     string adminUsername;   // admin/pegawai yang mencatat pembelian
 
@@ -220,15 +447,15 @@ public:
    VARIABEL GLOBAL
    ============================================================ */
 
-vector<User>               daftarUser;
-vector<MenuItem>           daftarMenu;
-vector<Transaksi>          daftarTransaksi;
-vector<Pesanan>            daftarPesanan;
-vector<ItemTransaksi>      keranjang;       // keranjang sementara saat input pesanan
-vector<Supplier>           daftarSupplier;
-vector<CatatanStok>        daftarCatatanStok;
-vector<TransaksiPembelian> daftarPembelian;
-vector<Promo>              daftarPromo;
+ManualList<User>               daftarUser;
+ManualList<MenuItem>           daftarMenu;
+ManualList<Transaksi>          daftarTransaksi;
+ManualList<Pesanan>            daftarPesanan;
+ManualList<ItemTransaksi>      keranjang;       // keranjang sementara saat input pesanan
+ManualList<Supplier>           daftarSupplier;
+ManualList<CatatanStok>        daftarCatatanStok;
+ManualList<TransaksiPembelian> daftarPembelian;
+ManualList<Promo>              daftarPromo;
 
 string roleLogin    = "";
 string userLogin    = "";
@@ -257,28 +484,18 @@ void garis(char c = '=', int panjang = LEBAR_LAYAR) {
     cout << string(panjang, c) << "\n";
 }
 
-string getTanggalSekarang() {
+Tanggal getTanggalSekarang() {
     time_t t = time(0);
     tm *now = localtime(&t);
 
-    ostringstream oss;
-    oss << setfill('0') << setw(2) << now->tm_mday << "-"
-        << setfill('0') << setw(2) << (now->tm_mon + 1) << "-"
-        << (now->tm_year + 1900);
-
-    return oss.str();
+    return Tanggal(now->tm_mday, now->tm_mon + 1, now->tm_year + 1900);
 }
 
-string getWaktuSekarang() {
+Waktu getWaktuSekarang() {
     time_t t = time(0);
     tm *now = localtime(&t);
 
-    ostringstream oss;
-    oss << setfill('0') << setw(2) << now->tm_hour << ":"
-        << setfill('0') << setw(2) << now->tm_min   << ":"
-        << setfill('0') << setw(2) << now->tm_sec;
-
-    return oss.str();
+    return Waktu(now->tm_hour, now->tm_min, now->tm_sec);
 }
 
 string formatRupiah(int angka) {
@@ -355,6 +572,33 @@ string toLowerStr(string s) {
         s[i] = tolower(s[i]);
     }
     return s;
+}
+
+bool mengandungKata(string teks, string kata) {
+    if (kata.size() == 0) {
+        return true;
+    }
+
+    if (kata.size() > teks.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i <= teks.size() - kata.size(); i++) {
+        bool sama = true;
+
+        for (size_t j = 0; j < kata.size(); j++) {
+            if (teks[i + j] != kata[j]) {
+                sama = false;
+                break;
+            }
+        }
+
+        if (sama) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /* ============================================================
@@ -473,7 +717,7 @@ bool loadMenuDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -527,8 +771,8 @@ int cariIndexMenuById(int id) {
     return -1;
 }
 
-vector<int> getIndexMenuByTipe(string tipe) {
-    vector<int> hasil;
+ManualList<int> getIndexMenuByTipe(string tipe) {
+    ManualList<int> hasil;
     for (size_t i = 0; i < daftarMenu.size(); i++) {
         if (daftarMenu[i].tipe == tipe) {
             hasil.push_back((int)i);
@@ -592,7 +836,7 @@ void loadUserDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -1117,7 +1361,7 @@ void hapusMenu() {
 
     string namaMenu = daftarMenu[idx].nama;
 
-    daftarMenu.erase(daftarMenu.begin() + idx);
+    daftarMenu.eraseAt(idx);
     simpanSemuaMenu();
 
     cout << "\nMenu '" << namaMenu << "' berhasil dihapus!\n";
@@ -1173,7 +1417,7 @@ void cariMenu() {
 
         string namaLower = toLowerStr(daftarMenu[i].nama);
 
-        if (namaLower.find(kataKunci) != string::npos) {
+        if (mengandungKata(namaLower, kataKunci)) {
 
             cout << "  " << setw(4) << left << daftarMenu[i].id
                  << setw(30) << left << daftarMenu[i].nama
@@ -1273,7 +1517,7 @@ void loadSupplierDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -1444,7 +1688,7 @@ void hapusSupplier() {
 
     string namaSupplier = daftarSupplier[idx].namaSupplier;
 
-    daftarSupplier.erase(daftarSupplier.begin() + idx);
+    daftarSupplier.eraseAt(idx);
     simpanSemuaSupplier();
 
     cout << "\nSupplier '" << namaSupplier << "' berhasil dihapus!\n";
@@ -1550,7 +1794,7 @@ void loadCatatanStokDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -1716,7 +1960,7 @@ void loadPembelianDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -1810,7 +2054,7 @@ void buatTransaksiPembelian() {
         return;
     }
 
-    vector<ItemPembelian> daftarBeli;
+    ManualList<ItemPembelian> daftarBeli;
     int pilihanLanjut;
 
     do {
@@ -2137,7 +2381,7 @@ void loadPesananDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -2537,7 +2781,7 @@ void loadTransaksiDariFile() {
 
         stringstream ss(baris);
         string token;
-        vector<string> kolom;
+        ManualList<string> kolom;
 
         while (getline(ss, token, '|')) {
             kolom.push_back(token);
@@ -2726,14 +2970,14 @@ void cariTransaksiByTanggal() {
     cout << "        CARI TRANSAKSI BERDASARKAN TANGGAL\n";
     garis();
 
-    string tanggal = inputString("Masukkan tanggal (format DD-MM-YYYY) : ");
+    Tanggal tanggalDicari = inputString("Masukkan tanggal (format DD-MM-YYYY) : ");
 
     bool ketemu = false;
     int totalTanggalIni = 0;
 
     for (size_t i = 0; i < daftarTransaksi.size(); i++) {
 
-        if (daftarTransaksi[i].tanggal != tanggal) continue;
+        if (daftarTransaksi[i].tanggal != tanggalDicari.keString()) continue;
 
         ketemu = true;
 
@@ -2750,7 +2994,7 @@ void cariTransaksiByTanggal() {
         cout << "\nTidak ada transaksi pada tanggal tersebut.\n";
     } else {
         garis('-');
-        cout << "TOTAL PENJUALAN TANGGAL " << tanggal << " : "
+        cout << "TOTAL PENJUALAN TANGGAL " << tanggalDicari << " : "
              << formatRupiah(totalTanggalIni) << "\n";
     }
 
@@ -2777,9 +3021,9 @@ void laporanMenuTerlaris() {
     }
 
     // Hitung total terjual per nama menu
-    vector<string> namaUnik;
-    vector<int>    jumlahTerjual;
-    vector<int>    pendapatanMenu;
+    ManualList<string> namaUnik;
+    ManualList<int>    jumlahTerjual;
+    ManualList<int>    pendapatanMenu;
 
     for (size_t i = 0; i < daftarTransaksi.size(); i++) {
 
@@ -2859,9 +3103,9 @@ void laporanRekapHarian() {
         return;
     }
 
-    vector<string> tanggalUnik;
-    vector<int>    totalPerTanggal;
-    vector<int>    jumlahTrxPerTanggal;
+    ManualList<string> tanggalUnik;
+    ManualList<int>    totalPerTanggal;
+    ManualList<int>    jumlahTrxPerTanggal;
 
     for (size_t i = 0; i < daftarTransaksi.size(); i++) {
 
