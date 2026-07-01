@@ -3,7 +3,6 @@
 #include <string>
 #include <ctime>
 #include <limits>
-
 using namespace std;
 
 const int MAX_USER = 20;
