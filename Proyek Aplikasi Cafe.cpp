@@ -777,6 +777,18 @@ int cariIndexMenuById(int id) {
     return -1;
 }
 
+int cariIndexMenuByNama(string nama) {
+    string namaDicari = toLowerStr(nama);
+
+    for (size_t i = 0; i < daftarMenu.size(); i++) {
+        if (toLowerStr(daftarMenu[i].nama) == namaDicari) {
+            return (int)i;
+        }
+    }
+
+    return -1;
+}
+
 ManualList<int> getIndexMenuByTipe(string tipe) {
     ManualList<int> hasil;
     for (size_t i = 0; i < daftarMenu.size(); i++) {
@@ -1920,6 +1932,104 @@ void lihatStokMenuSaatIni() {
     jedaLayar();
 }
 
+void rekomendasiRestockMenu() {
+    clearScreen();
+
+    garis();
+    cout << "              REKOMENDASI RESTOCK MENU\n";
+    garis();
+
+    int batasMinimum = inputIntRange("Batas stok minimum       : ", 0, 9999);
+    int targetStok   = inputIntRange("Target stok setelah beli : ", batasMinimum, 9999);
+
+    cout << "\n";
+    cout << left << setw(5)  << "ID"
+         << setw(28) << "Nama Menu"
+         << setw(10) << "Stok"
+         << setw(12) << "Beli"
+         << "Catatan\n";
+
+    garis('-');
+
+    bool adaRekomendasi = false;
+    int totalItemDisarankan = 0;
+
+    for (size_t i = 0; i < daftarMenu.size(); i++) {
+        if (!daftarMenu[i].tersedia) continue;
+
+        if (daftarMenu[i].stok <= batasMinimum) {
+            adaRekomendasi = true;
+
+            int jumlahBeli = targetStok - daftarMenu[i].stok;
+            if (jumlahBeli < 0) jumlahBeli = 0;
+
+            string catatan = "Restock";
+
+            if (daftarMenu[i].stok <= 0) {
+                catatan = "Prioritas";
+            } else if (daftarMenu[i].stok <= batasMinimum / 2) {
+                catatan = "Segera";
+            }
+
+            cout << left << setw(5)  << daftarMenu[i].id
+                 << setw(28) << daftarMenu[i].nama
+                 << setw(10) << daftarMenu[i].stok
+                 << setw(12) << jumlahBeli
+                 << catatan
+                 << "\n";
+
+            totalItemDisarankan += jumlahBeli;
+        }
+    }
+
+    garis('-');
+
+    if (!adaRekomendasi) {
+        cout << "Tidak ada menu yang perlu restock berdasarkan batas tersebut.\n";
+    } else {
+        cout << "Total item yang disarankan dibeli: " << totalItemDisarankan << "\n";
+        cout << "Catatan: jumlah ini hanya rekomendasi awal, admin tetap perlu cek supplier.\n";
+    }
+
+    cout << "\n";
+    jedaLayar();
+}
+
+void laporanNilaiPersediaanMenu() {
+    clearScreen();
+
+    garis();
+    cout << "              NILAI PERSEDIAAN MENU\n";
+    garis();
+
+    cout << left << setw(5)  << "ID"
+         << setw(28) << "Nama Menu"
+         << setw(10) << "Stok"
+         << setw(14) << "Harga"
+         << "Nilai Stok\n";
+
+    garis('-');
+
+    int grandTotal = 0;
+
+    for (size_t i = 0; i < daftarMenu.size(); i++) {
+        int nilai = daftarMenu[i].stok * daftarMenu[i].harga;
+        grandTotal += nilai;
+
+        cout << left << setw(5)  << daftarMenu[i].id
+             << setw(28) << daftarMenu[i].nama
+             << setw(10) << daftarMenu[i].stok
+             << setw(14) << formatRupiah(daftarMenu[i].harga)
+             << formatRupiah(nilai)
+             << "\n";
+    }
+
+    garis('-');
+    cout << "Total estimasi nilai stok menu: " << formatRupiah(grandTotal) << "\n\n";
+
+    jedaLayar();
+}
+
 /* ============================================================
    PENYIMPANAN & PEMUATAN DATA TRANSAKSI PEMBELIAN (FILE)
    ============================================================ */
@@ -2231,16 +2341,20 @@ void menuKelolaStokPembelian() {
         cout << "2. Riwayat Pergerakan Stok\n";
         cout << "3. Catat Pembelian dari Supplier\n";
         cout << "4. Riwayat Pembelian\n";
+        cout << "5. Rekomendasi Restock Menu\n";
+        cout << "6. Nilai Persediaan Menu\n";
         cout << "0. Kembali\n";
         garis();
 
-        pilihan = inputIntRange("Pilih Menu : ", 0, 4);
+        pilihan = inputIntRange("Pilih Menu : ", 0, 6);
 
         switch (pilihan) {
             case 1: lihatStokMenuSaatIni();     break;
             case 2: lihatRiwayatStok();         break;
             case 3: buatTransaksiPembelian();   break;
             case 4: lihatRiwayatPembelian();    break;
+            case 5: rekomendasiRestockMenu();   break;
+            case 6: laporanNilaiPersediaanMenu(); break;
         }
 
     } while (pilihan != 0);
@@ -2926,7 +3040,7 @@ void simpanTransaksiKeFile(Transaksi trx) {
 
     ofstream file(FILE_TRANSAKSI.c_str(), ios::app);
 
-    // Format: ID|TANGGAL|WAKTU|KASIR|CUSTOMER|TOTAL|BAYAR|KEMBALIAN|JUMLAH_ITEM|item1_nama:harga:jumlah;...|KODE_PROMO|DISKON|SUBTOTAL
+    // Format: ID|TANGGAL|WAKTU|KASIR|CUSTOMER|TOTAL|BAYAR|KEMBALIAN|JUMLAH_ITEM|item1_id:nama:harga:jumlah;...|KODE_PROMO|DISKON|SUBTOTAL
     file << trx.idTransaksi << "|"
          << trx.tanggal << "|"
          << trx.waktu << "|"
@@ -2938,7 +3052,8 @@ void simpanTransaksiKeFile(Transaksi trx) {
          << trx.daftarItem.size() << "|";
 
     for (size_t i = 0; i < trx.daftarItem.size(); i++) {
-        file << trx.daftarItem[i].namaMenu << ":"
+        file << trx.daftarItem[i].idMenu << ":"
+             << trx.daftarItem[i].namaMenu << ":"
              << trx.daftarItem[i].harga << ":"
              << trx.daftarItem[i].jumlah;
 
@@ -3143,18 +3258,31 @@ void loadTransaksiDariFile() {
             while (getline(itemStream, itemToken, ';')) {
 
                 stringstream itemSS(itemToken);
-                string namaI, hargaI, jumlahI;
+                string bagian1, bagian2, bagian3, bagian4;
 
-                getline(itemSS, namaI, ':');
-                getline(itemSS, hargaI, ':');
-                getline(itemSS, jumlahI, ':');
+                getline(itemSS, bagian1, ':');
+                getline(itemSS, bagian2, ':');
+                getline(itemSS, bagian3, ':');
+                getline(itemSS, bagian4, ':');
 
-                if (namaI.empty()) continue;
+                if (bagian1.empty()) continue;
 
                 ItemTransaksi it;
-                it.namaMenu = namaI;
-                it.harga    = stoi(hargaI);
-                it.jumlah   = stoi(jumlahI);
+
+                if (bagian4.empty()) {
+                    // Format lama: nama:harga:jumlah
+                    it.idMenu   = 0;
+                    it.namaMenu = bagian1;
+                    it.harga    = stoi(bagian2);
+                    it.jumlah   = stoi(bagian3);
+                } else {
+                    // Format baru: id:nama:harga:jumlah
+                    it.idMenu   = stoi(bagian1);
+                    it.namaMenu = bagian2;
+                    it.harga    = stoi(bagian3);
+                    it.jumlah   = stoi(bagian4);
+                }
+
                 it.subtotal = it.harga * it.jumlah;
 
                 trx.daftarItem.push_back(it);
@@ -4122,6 +4250,10 @@ void laporanPenjualanPerKategori() {
             string kategori = "Tidak Diketahui";
             int idxMenu = cariIndexMenuById(daftarTransaksi[i].daftarItem[j].idMenu);
 
+            if (idxMenu == -1) {
+                idxMenu = cariIndexMenuByNama(daftarTransaksi[i].daftarItem[j].namaMenu);
+            }
+
             if (idxMenu != -1) {
                 kategori = daftarMenu[idxMenu].kategori;
             }
@@ -4277,6 +4409,257 @@ void lihatTransaksiSayaSebagaiCustomer() {
     jedaLayar();
 }
 
+/* ============================================================
+   FITUR TAMBAHAN: AUDIT DATA SISTEM
+   ============================================================ */
+
+bool adaDuplikatUsername() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarUser.size(); i++) {
+        for (size_t j = i + 1; j < daftarUser.size(); j++) {
+            if (toLowerStr(daftarUser[i].username) == toLowerStr(daftarUser[j].username)) {
+                cout << "[USER] Username duplikat: " << daftarUser[i].username << "\n";
+                bermasalah = true;
+            }
+        }
+    }
+
+    return bermasalah;
+}
+
+bool adaDuplikatIdMenu() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarMenu.size(); i++) {
+        for (size_t j = i + 1; j < daftarMenu.size(); j++) {
+            if (daftarMenu[i].id == daftarMenu[j].id) {
+                cout << "[MENU] ID menu duplikat: " << daftarMenu[i].id << "\n";
+                bermasalah = true;
+            }
+        }
+    }
+
+    return bermasalah;
+}
+
+bool adaDuplikatIdPesanan() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarPesanan.size(); i++) {
+        for (size_t j = i + 1; j < daftarPesanan.size(); j++) {
+            if (daftarPesanan[i].idPesanan == daftarPesanan[j].idPesanan) {
+                cout << "[PESANAN] ID pesanan duplikat: " << daftarPesanan[i].idPesanan << "\n";
+                bermasalah = true;
+            }
+        }
+    }
+
+    return bermasalah;
+}
+
+bool adaDuplikatIdTransaksi() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarTransaksi.size(); i++) {
+        for (size_t j = i + 1; j < daftarTransaksi.size(); j++) {
+            if (daftarTransaksi[i].idTransaksi == daftarTransaksi[j].idTransaksi) {
+                cout << "[TRANSAKSI] ID transaksi duplikat: " << daftarTransaksi[i].idTransaksi << "\n";
+                bermasalah = true;
+            }
+        }
+    }
+
+    return bermasalah;
+}
+
+bool cekMenuBermasalah() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarMenu.size(); i++) {
+        if (daftarMenu[i].nama.empty()) {
+            cout << "[MENU] Ada menu tanpa nama pada index " << i << "\n";
+            bermasalah = true;
+        }
+
+        if (daftarMenu[i].harga < 0) {
+            cout << "[MENU] Harga negatif: " << daftarMenu[i].nama << "\n";
+            bermasalah = true;
+        }
+
+        if (daftarMenu[i].stok < 0) {
+            cout << "[MENU] Stok negatif: " << daftarMenu[i].nama
+                 << " (" << daftarMenu[i].stok << ")\n";
+            bermasalah = true;
+        }
+    }
+
+    return bermasalah;
+}
+
+bool cekPromoBermasalah() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarPromo.size(); i++) {
+        if (daftarPromo[i].kodePromo.empty()) {
+            cout << "[PROMO] Ada promo tanpa kode pada index " << i << "\n";
+            bermasalah = true;
+        }
+
+        if (daftarPromo[i].besarDiskonPersen < 0 || daftarPromo[i].besarDiskonPersen > 90) {
+            cout << "[PROMO] Diskon tidak wajar: " << daftarPromo[i].kodePromo
+                 << " (" << daftarPromo[i].besarDiskonPersen << "%)\n";
+            bermasalah = true;
+        }
+
+        for (size_t j = i + 1; j < daftarPromo.size(); j++) {
+            if (toUpperStr(daftarPromo[i].kodePromo) == toUpperStr(daftarPromo[j].kodePromo)) {
+                cout << "[PROMO] Kode promo duplikat: " << daftarPromo[i].kodePromo << "\n";
+                bermasalah = true;
+            }
+        }
+    }
+
+    return bermasalah;
+}
+
+bool cekPesananBermasalah() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarPesanan.size(); i++) {
+        if (daftarPesanan[i].daftarItem.empty()) {
+            cout << "[PESANAN] Pesanan #" << daftarPesanan[i].idPesanan
+                 << " tidak memiliki item.\n";
+            bermasalah = true;
+        }
+
+        if (daftarPesanan[i].status != "Pending" &&
+            daftarPesanan[i].status != "Selesai" &&
+            daftarPesanan[i].status != "Dibatalkan") {
+            cout << "[PESANAN] Status tidak dikenal pada pesanan #"
+                 << daftarPesanan[i].idPesanan << ": "
+                 << daftarPesanan[i].status << "\n";
+            bermasalah = true;
+        }
+
+        int totalHitung = 0;
+
+        for (size_t j = 0; j < daftarPesanan[i].daftarItem.size(); j++) {
+            ItemTransaksi item = daftarPesanan[i].daftarItem[j];
+            totalHitung += item.subtotal;
+
+            if (item.jumlah <= 0) {
+                cout << "[PESANAN] Item jumlah tidak valid di pesanan #"
+                     << daftarPesanan[i].idPesanan << "\n";
+                bermasalah = true;
+            }
+
+            if (item.idMenu != 0 && cariIndexMenuById(item.idMenu) == -1) {
+                cout << "[PESANAN] Item menu tidak ditemukan pada pesanan #"
+                     << daftarPesanan[i].idPesanan << ": " << item.namaMenu << "\n";
+                bermasalah = true;
+            }
+        }
+
+        if (totalHitung != daftarPesanan[i].totalHarga) {
+            cout << "[PESANAN] Total tidak cocok pada pesanan #"
+                 << daftarPesanan[i].idPesanan
+                 << " (file: " << formatRupiah(daftarPesanan[i].totalHarga)
+                 << ", hitung: " << formatRupiah(totalHitung) << ")\n";
+            bermasalah = true;
+        }
+    }
+
+    return bermasalah;
+}
+
+bool cekTransaksiBermasalah() {
+    bool bermasalah = false;
+
+    for (size_t i = 0; i < daftarTransaksi.size(); i++) {
+        if (daftarTransaksi[i].daftarItem.empty()) {
+            cout << "[TRANSAKSI] Transaksi #" << daftarTransaksi[i].idTransaksi
+                 << " tidak memiliki item.\n";
+            bermasalah = true;
+        }
+
+        int subtotalHitung = 0;
+
+        for (size_t j = 0; j < daftarTransaksi[i].daftarItem.size(); j++) {
+            ItemTransaksi item = daftarTransaksi[i].daftarItem[j];
+            subtotalHitung += item.subtotal;
+
+            if (item.jumlah <= 0 || item.harga < 0) {
+                cout << "[TRANSAKSI] Item tidak valid di transaksi #"
+                     << daftarTransaksi[i].idTransaksi << ": "
+                     << item.namaMenu << "\n";
+                bermasalah = true;
+            }
+        }
+
+        if (daftarTransaksi[i].subtotalTransaksi != 0 &&
+            daftarTransaksi[i].subtotalTransaksi != subtotalHitung) {
+            cout << "[TRANSAKSI] Subtotal tidak cocok pada transaksi #"
+                 << daftarTransaksi[i].idTransaksi << "\n";
+            bermasalah = true;
+        }
+
+        if (daftarTransaksi[i].totalBayar !=
+            daftarTransaksi[i].subtotalTransaksi - daftarTransaksi[i].diskonPromo) {
+            cout << "[TRANSAKSI] Total setelah diskon tidak cocok pada transaksi #"
+                 << daftarTransaksi[i].idTransaksi << "\n";
+            bermasalah = true;
+        }
+
+        if (daftarTransaksi[i].uangBayar < daftarTransaksi[i].totalBayar) {
+            cout << "[TRANSAKSI] Uang bayar kurang pada transaksi #"
+                 << daftarTransaksi[i].idTransaksi << "\n";
+            bermasalah = true;
+        }
+    }
+
+    return bermasalah;
+}
+
+void auditKesehatanData() {
+    clearScreen();
+
+    garis();
+    cout << "              AUDIT KESEHATAN DATA SISTEM\n";
+    garis();
+
+    bool adaMasalah = false;
+
+    cout << "\n[1] Pemeriksaan duplikasi data...\n";
+    if (adaDuplikatUsername()) adaMasalah = true;
+    if (adaDuplikatIdMenu()) adaMasalah = true;
+    if (adaDuplikatIdPesanan()) adaMasalah = true;
+    if (adaDuplikatIdTransaksi()) adaMasalah = true;
+
+    cout << "\n[2] Pemeriksaan data menu dan promo...\n";
+    if (cekMenuBermasalah()) adaMasalah = true;
+    if (cekPromoBermasalah()) adaMasalah = true;
+
+    cout << "\n[3] Pemeriksaan pesanan dan transaksi...\n";
+    if (cekPesananBermasalah()) adaMasalah = true;
+    if (cekTransaksiBermasalah()) adaMasalah = true;
+
+    cout << "\n";
+    garis('-');
+
+    if (!adaMasalah) {
+        cout << "Hasil audit: tidak ditemukan masalah data utama.\n";
+    } else {
+        cout << "Hasil audit: ada data yang perlu diperiksa.\n";
+        cout << "Saran: perbaiki data melalui menu terkait atau cek file penyimpanan.\n";
+    }
+
+    garis('-');
+    cout << "\n";
+
+    jedaLayar();
+}
+
 void menuLaporanTransaksi() {
 
     int pilihan;
@@ -4345,7 +4728,8 @@ void tampilMenuAdmin() {
     cout << "6. Kelola Promo\n";
     cout << "7. Laporan & Transaksi\n";
     cout << "8. Menu Stok Menipis\n";
-    cout << "9. Logout\n";
+    cout << "9. Audit Kesehatan Data\n";
+    cout << "10. Logout\n";
     cout << "0. Keluar\n";
     garis();
 }
@@ -4424,6 +4808,10 @@ void jalankanMenuAdmin(int pilihan, bool &sudahLogin) {
             break;
 
         case 9:
+            auditKesehatanData();
+            break;
+
+        case 10:
             logout();
             sudahLogin = false;
             break;
@@ -4597,7 +4985,7 @@ int main() {
 
             if (roleLogin == "Admin") {
                 tampilMenuAdmin();
-                pilihan = inputIntRange("Pilih Menu : ", 0, 9);
+                pilihan = inputIntRange("Pilih Menu : ", 0, 10);
                 jalankanMenuAdmin(pilihan, sudahLogin);
             }
             else if (roleLogin == "Kasir") {
