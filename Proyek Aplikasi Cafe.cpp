@@ -4962,7 +4962,7 @@ int main() {
     int pilihan;
     bool sudahLogin = false;
 
-    // Muat seluruh data dari file (persist antar sesi program)
+    // Muat seluruh data dari file (persis antar sesi program)
     loadUserDariFile();
     siapkanAdminDefault();
     siapkanDataMenu();
