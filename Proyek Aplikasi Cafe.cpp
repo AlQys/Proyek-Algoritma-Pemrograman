@@ -2989,7 +2989,7 @@ void cetakStruk(Transaksi trx) {
     clearScreen();
 
     garis('*');
-    cout << "              " << NAMA_KAFE << "\n";
+    cout << "                  " << NAMA_KAFE << "\n";
     cout << "Jl. Singoranu Jl. Potronanggan, Kragilan, Tamanan\n";
     garis('*');
 
@@ -3029,7 +3029,7 @@ void cetakStruk(Transaksi trx) {
     cout << right << setw(38) << "KEMBALI  : " << formatRupiah(trx.kembalian)  << "\n";
 
     garis('*');
-    cout << "       Terima kasih telah berkunjung!\n";
+    cout << "          Terima kasih telah berkunjung!\n";
     garis('*');
 
     cout << "\n";

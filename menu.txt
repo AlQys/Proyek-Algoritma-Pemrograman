@@ -2,7 +2,7 @@
 2|Makanan|Main Dish|Nasi Telur + Tempe|13000|100|1
 3|Makanan|Main Dish|Nasi Telur + Jamur|13000|99|1
 4|Makanan|Main Dish|Nasi Telur + Nugget|14000|100|1
-5|Makanan|Main Dish|Nasi Ayam|17000|100|1
+5|Makanan|Main Dish|Nasi Ayam|17000|98|1
 6|Makanan|Main Dish|Nasi Ayam + Jamur|18000|100|1
 7|Makanan|Main Dish|Nasi Ayam + Nugget|19000|100|1
 8|Makanan|Nasgor|Nasi Goreng Kobe|12000|100|1

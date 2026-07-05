@@ -2,3 +2,5 @@
 2|02-07-2026|19:55:18|nero|20000|Selesai|1|Alpukat:20000:1
 3|02-07-2026|20:02:30|nero|24000|Selesai|1|Ice Coffee Aren:24000:1
 4|05-07-2026|20:53:02|nero|13000|Selesai|1|Nasi Telur + Jamur:13000:1
+5|05-07-2026|21:07:40|nero|17000|Selesai|1|Nasi Ayam:17000:1
+6|05-07-2026|21:11:11|nero|17000|Selesai|1|Nasi Ayam:17000:1
