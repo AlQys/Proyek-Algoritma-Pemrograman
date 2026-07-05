@@ -145,7 +145,7 @@ int jumlahUser = 0, jumlahMenu = 0, jumlahTransaksi = 0, jumlahPesanan = 0;
 int jumlahSupplier = 0, jumlahStok = 0, jumlahPembelian = 0, jumlahPromo = 0;
 int idMenu = 1, idTransaksi = 1, idPesanan = 1, idSupplier = 1, idStok = 1, idPembelian = 1;
 
-void garis() { cout << "=================================================\n"; }
+void garis() { cout << "==================================================\n"; }
 
 int inputInt(string pesan) {
     int nilai;
