@@ -2989,8 +2989,8 @@ void cetakStruk(Transaksi trx) {
     clearScreen();
 
     garis('*');
-    cout << "          " << NAMA_KAFE << "\n";
-    cout << "         Jl. Contoh No. 123\n";
+    cout << "              " << NAMA_KAFE << "\n";
+    cout << "Jl. Singoranu Jl. Potronanggan, Kragilan, Tamanan\n";
     garis('*');
 
     cout << "No. Transaksi : " << trx.idTransaksi << "\n";
