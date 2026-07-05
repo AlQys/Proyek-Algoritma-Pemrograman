@@ -2812,6 +2812,7 @@ void loadPesananDariFile() {
         if (kolom.size() < 7) continue;
 
         Pesanan p;
+        p.idPesanan         = stoi(kolom[0]);
         p.tanggal           = kolom[1];
         p.waktu             = kolom[2];
         p.customerUsername  = kolom[3];
