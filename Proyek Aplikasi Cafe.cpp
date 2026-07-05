@@ -167,23 +167,7 @@ public:
 };
 
 
-class MenuItem {
-public:
-    int    id;
-    string tipe;        // "Makanan" / "Minuman"
-    string kategori;
-    string nama;
-    int    harga;
-    int    stok;
-    bool   tersedia;
 
-    MenuItem() {
-        id = 0;
-        harga = 0;
-        stok = 0;
-        tersedia = true;
-    }
-};
 
 // Satu baris item di dalam sebuah transaksi
 class ItemTransaksi {
