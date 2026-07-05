@@ -21,7 +21,7 @@
 21|Minuman|Kopi Robusta|Kopi Susu|18000|100|1
 22|Minuman|Ice Coffee|Ice Coffee Hitam|18000|100|1
 23|Minuman|Ice Coffee|Ice Coffee Kobe|22000|100|1
-24|Minuman|Ice Coffee|Ice Coffee Aren|24000|100|1
+24|Minuman|Ice Coffee|Ice Coffee Aren|24000|99|1
 25|Minuman|Non Coffee|Matcha|23000|100|1
 26|Minuman|Non Coffee|Red Velvet|22000|100|1
 27|Minuman|Cokelat|Cokelat Original|20000|100|1
@@ -32,9 +32,9 @@
 32|Minuman|Milk Series|Milk Strawberry|19000|100|1
 33|Minuman|Squash|Lemon Squash|17000|100|1
 34|Minuman|Squash|Lychee Squash|17000|100|1
-35|Minuman|Juice|Alpukat|20000|100|1
+35|Minuman|Juice|Alpukat|20000|99|1
 36|Minuman|Juice|Jambu|19000|100|1
 37|Minuman|Tea Series|Original Tea|18000|100|1
 38|Minuman|Tea Series|Lemon Tea|19000|100|1
 39|Minuman|Wedangan|Teh Jahe|15000|100|1
-40|Minuman|Wedangan|Wedang Uwuh|17000|100|1
+40|Minuman|Wedangan|Wedang Uwuh|17000|99|1

@@ -1,1 +1,2 @@
 HEMAT10|Diskon Pembukaan|10|1
+HEMAT20|WAAHH|20|1

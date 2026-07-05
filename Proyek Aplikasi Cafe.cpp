@@ -392,7 +392,7 @@ public:
     string namaBarang;
     int    stokMasuk;
     int    stokKeluar;
-    string keterangan;     // contoh: "Pembelian dari supplier", "Penjualan", "Koreksi stok"
+    string keterangan;
 
     CatatanStok() {
         idCatatan  = 0;
