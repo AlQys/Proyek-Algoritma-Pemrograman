@@ -611,7 +611,77 @@ bool mengandungKata(string teks, string kata) {
    INISIALISASI DATA MENU AWAL
    ============================================================ */
 
+void tambahMenuKeDaftar(string tipe, string kategori, string nama, int harga, int stok = 100) {
+    MenuItem m;
+    m.id        = counterIdMenu++;
+    m.tipe      = tipe;
+    m.kategori  = kategori;
+    m.nama      = nama;
+    m.harga     = harga;
+    m.stok      = stok;
+    m.tersedia  = true;
 
+    daftarMenu.push_back(m);
+}
+
+void inisialisasiMenuMakanan() {
+
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Telur", 11000);
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Telur + Tempe", 13000);
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Telur + Jamur", 13000);
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Telur + Nugget", 14000);
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Ayam", 17000);
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Ayam + Jamur", 18000);
+    tambahMenuKeDaftar("Makanan", "Main Dish", "Nasi Ayam + Nugget", 19000);
+
+    tambahMenuKeDaftar("Makanan", "Nasgor", "Nasi Goreng Kobe", 12000);
+    tambahMenuKeDaftar("Makanan", "Nasgor", "Nasi Goreng Oriental", 15000);
+    tambahMenuKeDaftar("Makanan", "Nasgor", "Nasi Goreng Jawa", 15000);
+    tambahMenuKeDaftar("Makanan", "Nasgor", "Nasi Goreng Arab", 15000);
+    tambahMenuKeDaftar("Makanan", "Nasgor", "Magelangan", 17000);
+
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Goreng Telur", 10000);
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Rebus Telur", 10000);
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Goreng Telur + Sosis", 12000);
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Rebus Telur + Sosis", 12000);
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Goreng Katsu", 15000);
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Goreng Spesial", 15000);
+    tambahMenuKeDaftar("Makanan", "Mie", "Mie Rebus Spesial", 15000);
+}
+
+void inisialisasiMenuMinuman() {
+
+    tambahMenuKeDaftar("Minuman", "Kopi Robusta", "Kopi Hitam", 15000);
+    tambahMenuKeDaftar("Minuman", "Kopi Robusta", "Kopi Susu", 18000);
+
+    tambahMenuKeDaftar("Minuman", "Ice Coffee", "Ice Coffee Hitam", 18000);
+    tambahMenuKeDaftar("Minuman", "Ice Coffee", "Ice Coffee Kobe", 22000);
+    tambahMenuKeDaftar("Minuman", "Ice Coffee", "Ice Coffee Aren", 24000);
+
+    tambahMenuKeDaftar("Minuman", "Non Coffee", "Matcha", 23000);
+    tambahMenuKeDaftar("Minuman", "Non Coffee", "Red Velvet", 22000);
+
+    tambahMenuKeDaftar("Minuman", "Cokelat", "Cokelat Original", 20000);
+    tambahMenuKeDaftar("Minuman", "Cokelat", "Cokelat Almond", 22000);
+
+    tambahMenuKeDaftar("Minuman", "Blend", "Cappuccino", 25000);
+    tambahMenuKeDaftar("Minuman", "Blend", "Oreo", 24000);
+
+    tambahMenuKeDaftar("Minuman", "Milk Series", "Milk Tea", 18000);
+    tambahMenuKeDaftar("Minuman", "Milk Series", "Milk Strawberry", 19000);
+
+    tambahMenuKeDaftar("Minuman", "Squash", "Lemon Squash", 17000);
+    tambahMenuKeDaftar("Minuman", "Squash", "Lychee Squash", 17000);
+
+    tambahMenuKeDaftar("Minuman", "Juice", "Alpukat", 20000);
+    tambahMenuKeDaftar("Minuman", "Juice", "Jambu", 19000);
+
+    tambahMenuKeDaftar("Minuman", "Tea Series", "Original Tea", 18000);
+    tambahMenuKeDaftar("Minuman", "Tea Series", "Lemon Tea", 19000);
+
+    tambahMenuKeDaftar("Minuman", "Wedangan", "Teh Jahe", 15000);
+    tambahMenuKeDaftar("Minuman", "Wedangan", "Wedang Uwuh", 17000);
+}
 
 /* ============================================================
    PENYIMPANAN & PEMUATAN DATA MENU (FILE)
