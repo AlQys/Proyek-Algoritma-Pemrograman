@@ -177,12 +177,12 @@ git clone <repository-url>
 
 # 👨‍💻 Tim Pengembang
 
-* Imam Patria
-* (Nama Anggota 2)
-* (Nama Anggota 3)
+* Ahmad Imam Al Qysthy Patria
+* ABD. Rayhan M. Kota
+* Zakky Auliya Fadlan
 
 ---
 
 # 📌 Catatan
 
-Project ini dibuat sebagai media pembelajaran mata kuliah Pemrograman C++ dan masih dapat dikembangkan lebih lanjut dengan penggunaan database seperti MySQL serta GUI menggunakan Qt atau framework lainnya.
+Project ini dibuat sebagai media pembelajaran mata kuliah Algoritma Pemrograman dan masih dapat dikembangkan lebih lanjut dengan penggunaan database seperti MySQL serta GUI menggunakan Qt atau framework lainnya.
