@@ -19,6 +19,9 @@ Made with ❤️ using C++
 
 
 
+
+
+
 # ☕ KOBESSAH KOPI
 
 ### Sistem Informasi Kafe Berbasis C++
@@ -29,7 +32,7 @@ Made with ❤️ using C++
 
 ## 📖 Deskripsi
 
-KOBESSAH KOPI merupakan aplikasi manajemen kafe berbasis **C++ Console** yang dikembangkan sebagai proyek akhir mata kuliah Pemrograman.
+KOBESSAH KOPI merupakan aplikasi manajemen kafe berbasis **C++ Console** yang dikembangkan sebagai proyek akhir mata kuliah Algoritma Pemrograman.
 
 Aplikasi ini dirancang untuk membantu operasional kafe mulai dari pengelolaan akun, menu, transaksi, stok, supplier, promo hingga laporan penjualan.
 
