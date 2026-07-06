@@ -1028,6 +1028,12 @@ void tambahPegawai() {
 
     string username = inputString("Username : ");
 
+    if (username.empty()) {
+        cout << "\nUsername tidak boleh kosong!\n";
+        jedaLayar();
+        return;
+    }
+
     if (usernameSudahDipakai(username)) {
         cout << "\nUsername sudah digunakan!\n";
         jedaLayar();
@@ -1035,6 +1041,13 @@ void tambahPegawai() {
     }
 
     string password = inputString("Password : ");
+
+    if (password.empty()) {
+        cout << "\nPassword tidak boleh kosong!\n";
+        jedaLayar();
+        return;
+    }
+
     string nama     = inputString("Nama Lengkap : ");
 
     cout << "\n1. Admin\n";
@@ -1746,6 +1759,8 @@ void ubahStatusSupplier() {
     jedaLayar();
 }
 
+void menuKelolaStokPembelian();
+
 void menuKelolaSupplier() {
 
     int pilihan;
@@ -1772,6 +1787,31 @@ void menuKelolaSupplier() {
             case 3: editSupplier();          break;
             case 4: hapusSupplier();         break;
             case 5: ubahStatusSupplier();    break;
+        }
+
+    } while (pilihan != 0);
+}
+
+void menuSupplierDanStokPembelian() {
+
+    int pilihan;
+
+    do {
+        clearScreen();
+
+        garis();
+        cout << "       SUPPLIER & STOK / PEMBELIAN\n";
+        garis();
+        cout << "1. Kelola Supplier\n";
+        cout << "2. Stok & Pembelian\n";
+        cout << "0. Kembali\n";
+        garis();
+
+        pilihan = inputIntRange("Pilih Menu : ", 0, 2);
+
+        switch (pilihan) {
+            case 1: menuKelolaSupplier(); break;
+            case 2: menuKelolaStokPembelian(); break;
         }
 
     } while (pilihan != 0);
@@ -2166,6 +2206,12 @@ void buatTransaksiPembelian() {
 
     if (idxSupplier == -1) {
         cout << "\nSupplier tidak ditemukan!\n";
+        jedaLayar();
+        return;
+    }
+
+    if (!daftarSupplier[idxSupplier].aktif) {
+        cout << "\nSupplier ini sedang nonaktif, tidak bisa dipakai untuk pembelian!\n";
         jedaLayar();
         return;
     }
@@ -2702,6 +2748,18 @@ int hitungTotalKeranjang() {
     return total;
 }
 
+int hitungJumlahDiKeranjang(int idMenu) {
+    int total = 0;
+
+    for (size_t i = 0; i < keranjang.size(); i++) {
+        if (keranjang[i].idMenu == idMenu) {
+            total += keranjang[i].jumlah;
+        }
+    }
+
+    return total;
+}
+
 void tampilIsiKeranjang() {
 
     if (keranjang.empty()) {
@@ -2913,8 +2971,16 @@ void buatPesananBaru() {
             continue;
         }
 
-        if (jumlah > daftarMenu[idxMenu].stok) {
-            cout << "\nStok tidak mencukupi! Sisa stok: " << daftarMenu[idxMenu].stok << "\n";
+        int jumlahSudahDiKeranjang = hitungJumlahDiKeranjang(idMenu);
+        int sisaStokTersedia = daftarMenu[idxMenu].stok - jumlahSudahDiKeranjang;
+
+        if (sisaStokTersedia < 0) {
+            sisaStokTersedia = 0;
+        }
+
+        if (jumlah > sisaStokTersedia) {
+            cout << "\nStok tidak mencukupi! Sisa stok untuk pesanan ini: "
+                 << sisaStokTersedia << "\n";
             jedaLayar();
             continue;
         }
@@ -4724,7 +4790,7 @@ void tampilMenuAdmin() {
     cout << "2. Lihat Menu (Makanan & Minuman)\n";
     cout << "3. Kelola Menu (Tambah/Edit/Hapus)\n";
     cout << "4. Kelola Pegawai\n";
-    cout << "5. Supplier, Stok & Pembelian\n";
+    cout << "5. Supplier / Stok & Pembelian\n";
     cout << "6. Kelola Promo\n";
     cout << "7. Laporan & Transaksi\n";
     cout << "8. Menu Stok Menipis\n";
@@ -4792,7 +4858,7 @@ void jalankanMenuAdmin(int pilihan, bool &sudahLogin) {
             break;
 
         case 5:
-            menuKelolaStokPembelian();
+            menuSupplierDanStokPembelian();
             break;
 
         case 6:
