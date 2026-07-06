@@ -1,14 +1,14 @@
 ☕ KOBESSAH KOPI
 Sistem Informasi Kafe Berbasis C++
 
-✨ Login
-🍽 CRUD Menu
-👨‍💼 Manajemen Pegawai
-🛒 Transaksi
-📦 Manajemen Stok
-🎁 Promo
-📊 Laporan
-💾 File Handling
+* ✨ Login
+* 🍽 CRUD Menu
+* 👨‍💼 Manajemen Pegawai
+* 🛒 Transaksi
+* 📦 Manajemen Stok
+* 🎁 Promo
+* 📊 Laporan
+* 💾 File Handling
 
 
 Made with ❤️ using C++
